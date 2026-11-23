@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="color-scheme" content="only light">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sparkle Secant Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Quicksand:wght@500;600;700&family=Sacramento&display=swap" rel="stylesheet">
+<style>
+/* VOICE: lembut, manis, elegan seperti butik hadiah — angkanya tetap rapi dan jujur
+   IDEA: etalase toko pink muda; kalkulator dipajang seperti produk unggulan
+   PICTURE: hero dengan gumpalan blush, polaroid konvergensi, hati & butiran berkilau melayang di latar
+   COLOUR and TYPE: blush pink, peach, coral lembut, aksen emas; Cormorant Garamond + Sacramento + Quicksand
+   LAYOUT: nav lavender, hero bertepi scallop, ubin bunga, pita berjalan; kalkulator: form | hasil, 3 grafik, tabel */
+:root{color-scheme:light;
+--bg:#fbb6c4;--paper:#faf5ec;--ink:#7d5560;
+--soft:#a8838c;--pink:#f7a0b8;--pink2:#fbb6c4;
+--lav:#faf5ec;--lav2:#f7a0b8;--peach:#fae9d7;
+--line:#f6d9dd;--yel:#fff1c9;--err:#e5b98f;--shade:#ef8fab;
+--band:#faf5ec99;--band2:#fae9d7a6;--band3:#fbb6c480}
+:root,:root[data-theme=light],:root[data-theme=dark]{color-scheme:light}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:radial-gradient(circle at 12% 18%,#faf5ec 0,transparent 32%),radial-gradient(circle at 85% 12%,#fae9d7 0,transparent 28%),radial-gradient(circle at 72% 78%,#faf5ecd0 0,transparent 30%),radial-gradient(circle at 20% 90%,#fae9d7 0,transparent 26%),linear-gradient(160deg,#fbb6c4,#f7a0b8 55%,#fbb6c4);background-attachment:fixed;color:var(--ink);font:16px/1.55 Quicksand,system-ui,sans-serif;font-weight:600;overflow-x:clip}
+h1,h2,h3,.big{font-family:'Cormorant Garamond',Georgia,serif;font-weight:700;line-height:1.05;margin:0;text-wrap:balance}
+.script{font-family:Sacramento,cursive;font-weight:400}
+.band{padding:clamp(28px,4vw,64px) max(5vw,16px)}
+.wrap{max-width:1240px;margin:0 auto}
+.fig{position:relative;min-height:300px}.fig>svg{position:absolute;inset:0;width:100%;height:100%}
+pre,.scroll{overflow-x:auto}
+.top{height:46px;background:radial-gradient(circle at 50% 100%,transparent 22px,var(--pink2) 23px) 0 0/56px 46px repeat-x}
+nav{background:var(--lav);position:relative;z-index:1;display:flex;flex-wrap:wrap;align-items:center;gap:8px 18px;padding:10px max(5vw,16px)}
+nav .logo{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:24px;margin-inline-end:auto;display:flex;align-items:center;gap:8px}
+nav a{color:var(--ink);text-decoration:none;font-size:14px;padding:10px 14px;border-radius:999px;min-height:44px;display:inline-flex;align-items:center}
+nav a.on{background:var(--paper);color:var(--ink);box-shadow:0 0 0 2px var(--pink2)}
+.scal{height:20px;background:radial-gradient(circle at 50% 0,var(--c,var(--pink2)) 13px,transparent 14px) 0 0/28px 20px repeat-x}
+.btn{font:700 16px Quicksand,sans-serif;border:0;border-radius:999px;padding:12px 30px;min-height:48px;cursor:pointer;background:var(--pink);color:#fff;text-shadow:0 1px 2px #e0809d99;box-shadow:0 5px 0 var(--shade)}
+.btn:hover{transform:translateY(-2px)}.btn:active{transform:translateY(3px);box-shadow:0 2px 0 var(--shade)}
+.btn.ghost{background:var(--paper);color:var(--ink);box-shadow:0 5px 0 var(--line)}
+:focus-visible{outline:3px solid var(--lav2);outline-offset:3px}
+/* HOME */
+.hero{background:var(--band);position:relative;overflow:hidden}
+.hero .blob{position:absolute;pointer-events:none;fill:var(--peach);opacity:.8;filter:blur(2px)}
+.hero .wrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr) minmax(0,1fr);align-items:center;gap:24px;min-height:440px;position:relative}
+.pol{background:#fff;padding:12px 12px 34px;box-shadow:0 14px 30px #f7a0b833;border-radius:4px;position:relative;z-index:1}
+.pol svg{display:block;width:100%;aspect-ratio:1;background:#fae9d7;border-radius:2px}
+.pol p{margin:8px 0 0;text-align:center;color:#b07592;font-family:Sacramento,cursive;font-size:24px;line-height:1}
+.p1{transform:rotate(-6deg)}.p2{transform:rotate(5deg)}
+.mid{text-align:center;position:relative;z-index:1}
+.mid h1{font-size:clamp(40px,6.4vw,80px);color:#f7a0b8;text-shadow:2px 2px 0 #faf5ec,0 0 24px #fff;text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+.mid .script{color:var(--ink)}
+.mid .script{font-size:clamp(34px,4vw,46px);display:block;margin:6px 0 22px}
+.arc{width:230px;height:60px;display:block;margin:0 auto -6px}
+.arc text{fill:var(--pink);font:700 15px Quicksand,sans-serif;letter-spacing:.2em}
+.deco{position:absolute;pointer-events:none}
+.intro{background:var(--band2);text-align:center}
+.intro h2{font-size:clamp(26px,3.2vw,36px)}
+.intro p{max-width:62ch;margin:12px auto 0}
+.tiles{background:var(--band3);display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px}
+.tile{aspect-ratio:1;display:grid;place-content:center;text-align:center;padding:16%;clip-path:path('M50 0')}
+.flower{position:relative;display:grid;place-items:center;aspect-ratio:1}
+.flower svg{position:absolute;inset:0;width:100%;height:100%}
+.flower div{position:relative;text-align:center;padding:0 18%}
+.flower b{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:clamp(22px,2.6vw,34px);display:block;line-height:1;color:var(--ink);text-shadow:0 2px 0 #fff}
+.flower span{font-family:Sacramento,cursive;font-size:clamp(22px,2.4vw,30px);color:var(--ink);line-height:1}
+.ribbon{background:var(--pink2);color:var(--ink);overflow:hidden;white-space:nowrap;font-size:13px;letter-spacing:.08em;padding:9px 0}
+.ribbon div{display:inline-block;animation:run 30s linear infinite}
+@keyframes run{to{transform:translateX(-50%)}}
+footer{background:var(--band);text-align:center;color:var(--soft);font-size:14px}
+/* CALC */
+.calc{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:24px;align-items:start}
+.card{background:var(--paper);border-radius:24px;padding:clamp(18px,2.5vw,30px);box-shadow:0 10px 30px #e0809d40}
+.card h2{font-size:28px;margin-bottom:4px}
+label{display:block;font-size:14px;color:var(--soft);margin:14px 0 6px}
+input,select{width:100%;font:600 16px Quicksand,sans-serif;color:var(--ink);background:#fff;border:2px solid var(--line);border-radius:14px;padding:11px 14px;min-height:46px}
+input:focus,select:focus{border-color:var(--pink)}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 14px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.chip{font:600 13px Quicksand,sans-serif;border:2px solid var(--line);background:transparent;color:var(--ink);border-radius:999px;padding:8px 13px;min-height:40px;cursor:pointer}
+.chip:hover{border-color:var(--pink)}
+.acts{display:flex;flex-wrap:wrap;gap:14px;margin-top:22px}
+.err{color:#d65a8a;font-size:14px;min-height:22px;margin-top:8px}
+.res{background:linear-gradient(160deg,#fbb6c4,#faf5ec 70%);color:var(--ink);position:relative;overflow:hidden;box-shadow:0 10px 0 var(--shade)}
+.res .script{font-size:34px;line-height:1;color:#fff;text-shadow:0 1px 3px #e0809d}
+.res .big{color:#f7a0b8;text-shadow:0 3px 0 #fff}
+.res .big{font-size:clamp(44px,7vw,76px);margin:6px 0 14px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.pill{display:inline-block;background:var(--paper);color:var(--ink);border:2px solid var(--pink2);border-radius:999px;padding:4px 14px;font-size:14px}
+.pill.bad{color:#c45a86}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:18px}
+.stats div{background:#faf5ecd9;border-radius:16px;padding:10px 12px}
+.stats small{display:block;font-size:13px;opacity:.9}
+.stats b{font-size:19px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.charts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;margin-top:28px}
+.charts h3{font-size:20px}.charts p{margin:2px 0 8px;font-size:14px;color:var(--soft)}
+.fig text{fill:var(--soft);font:600 12px Quicksand,sans-serif}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums;font-size:15px}
+th,td{padding:9px 12px;text-align:right;border-bottom:1px dashed var(--line);white-space:nowrap}
+th{background:var(--pink2);color:var(--ink);position:sticky;top:0}
+th:first-child{border-radius:12px 0 0 0}th:last-child{border-radius:0 12px 0 0}
+tr.last td{background:#fae9d7;font-weight:700}
+.tblhead{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:end;gap:10px;margin:34px 0 12px}
+.view[hidden]{display:none}
+#fx-bg{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:0}
+.top,main{position:relative;z-index:1}
+@media(max-width:900px){.calc,.charts{grid-template-columns:minmax(0,1fr)}.hero .wrap{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.mid{grid-column:1/-1;order:-1}.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){table{font-size:13px}.stats{grid-template-columns:minmax(0,1fr)}.p2{display:none}.p1{max-width:230px;margin:0 auto}.hero .wrap{grid-template-columns:minmax(0,1fr)}}
+@media(prefers-reduced-motion:reduce){.ribbon div{animation:none}.btn:hover{transform:none}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <g id="daisy"><g id="pt"><ellipse cx="0" cy="-27" rx="10" ry="20"/></g>
+      <use href="#pt" transform="rotate(45)"/><use href="#pt" transform="rotate(90)"/><use href="#pt" transform="rotate(135)"/>
+      <use href="#pt" transform="rotate(180)"/><use href="#pt" transform="rotate(225)"/><use href="#pt" transform="rotate(270)"/><use href="#pt" transform="rotate(315)"/>
+      <circle r="11" fill="#ffd36e"/></g>
+    <path id="spark" d="M0-14C2-3 3-2 14 0 3 2 2 3 0 14-2 3-3 2-14 0-3-2-2-3 0-14Z"/>
+    <path id="blob" d="M50 4C60 4 64 14 70 18 78 14 92 18 92 30 92 38 86 42 84 50 86 58 92 62 92 70 92 82 78 86 70 82 64 86 60 96 50 96 40 96 36 86 30 82 22 86 8 82 8 70 8 62 14 58 16 50 14 42 8 38 8 30 8 18 22 14 30 18 36 14 40 4 50 4Z"/>
+  </defs>
+</svg>
+
+<canvas id="fx-bg" aria-hidden="true"></canvas>
+<div class="top"></div>
+<nav aria-label="Menu utama">
+  <span class="logo"><svg width="30" height="30" viewBox="-40 -40 80 80" fill="var(--pink)" aria-hidden="true"><use href="#daisy"/></svg>Sparkle Secant</span>
+  <a href="#home" id="nh">Home</a>
+  <a href="#kalkulator" id="nk">Kalkulator</a>
+</nav>
+
+<!-- ================= HOME ================= -->
+<main id="home" class="view">
+  <div class="scal" style="--c:var(--lav)"></div>
+  <section class="hero band">
+    <svg class="blob" style="left:-6%;top:-10%;width:42%" viewBox="0 0 200 200" aria-hidden="true"><path d="M44 30C78 2 140 8 170 44 198 78 186 140 146 168 104 196 40 186 16 140-6 98 10 58 44 30Z"/></svg>
+    <svg class="blob" style="right:-8%;bottom:-18%;width:40%;opacity:.55" viewBox="0 0 200 200" aria-hidden="true"><path d="M60 20C104 0 166 18 186 70 204 118 172 178 118 190 66 200 14 164 8 112 2 70 24 36 60 20Z"/></svg>
+    <svg class="deco" style="right:6%;top:42%;width:70px" viewBox="0 0 60 56" fill="none" stroke="var(--pink)" stroke-width="2.5" aria-hidden="true"><path d="M30 52C14 40 3 30 3 17 3 8 10 3 17 3 23 3 28 7 30 12 32 7 37 3 43 3 50 3 57 8 57 17 57 30 46 40 30 52Z"/></svg>
+    <svg class="deco" style="left:2%;top:62%;width:80px" viewBox="-40 -40 80 80" fill="#fff" aria-hidden="true"><use href="#daisy"/></svg>
+    <svg class="deco" style="right:3%;top:6%;width:56px" viewBox="-40 -40 80 80" fill="#fff" aria-hidden="true"><use href="#daisy"/></svg>
+    <svg class="deco" style="left:40%;top:8%;width:28px" viewBox="-15 -15 30 30" fill="var(--yel)" aria-hidden="true"><use href="#spark"/></svg>
+    <svg class="deco" style="right:36%;bottom:10%;width:22px" viewBox="-15 -15 30 30" fill="var(--pink)" aria-hidden="true"><use href="#spark"/></svg>
+    <div class="wrap">
+      <figure class="pol p1" style="margin:0">
+        <svg viewBox="0 0 200 200" aria-label="Sketsa titik iterasi yang mengumpul ke akar">
+          <line x1="20" y1="150" x2="185" y2="150" stroke="#fbb6c4" stroke-width="2"/>
+          <line x1="100" y1="20" x2="100" y2="180" stroke="#ffd36e" stroke-width="2" stroke-dasharray="5 5"/>
+          <path d="M20 170C60 165 85 150 100 120 115 85 140 50 185 30" fill="none" stroke="#f7a0b8" stroke-width="4"/>
+          <g fill="#f7a0b8"><circle cx="35" cy="168" r="6"/><circle cx="160" cy="42" r="6"/><circle cx="70" cy="158" r="6"/><circle cx="125" cy="78" r="6"/><circle cx="92" cy="133" r="6"/><circle cx="103" cy="114" r="6"/></g>
+          <use href="#spark" x="100" y="118" fill="#ffd36e" transform="translate(0 0)"/>
+        </svg>
+        <p>makin dekat ke akar</p>
+      </figure>
+      <div class="mid">
+        <svg class="arc" viewBox="0 0 230 60" aria-hidden="true"><path id="ap" d="M15 55Q115 -5 215 55" fill="none"/><text><textPath href="#ap" startOffset="50%" text-anchor="middle">LET'S FIND THE ROOT</textPath></text></svg>
+        <h1>Secant Calculator</h1>
+        <span class="script">akar persamaan, satu kilau demi satu kilau</span>
+        <button class="btn" id="start" style="font-size:18px;padding:14px 44px">Start</button>
+      </div>
+      <figure class="pol p2" style="margin:0">
+        <svg viewBox="0 0 200 200" aria-label="Rumus metode secant">
+          <use href="#daisy" x="170" y="30" fill="#fbb6c4"/>
+          <text x="100" y="78" text-anchor="middle" font-family="Cormorant Garamond,serif" font-weight="700" font-size="26" fill="#f7a0b8">x₂ = x₀ −</text>
+          <text x="100" y="112" text-anchor="middle" font-family="Quicksand,sans-serif" font-weight="700" font-size="15" fill="#7d5560">(x₁ − x₀) · f(x₀)</text>
+          <line x1="35" y1="122" x2="165" y2="122" stroke="#7d5560" stroke-width="2"/>
+          <text x="100" y="146" text-anchor="middle" font-family="Quicksand,sans-serif" font-weight="700" font-size="15" fill="#7d5560">f(x₁) − f(x₀)</text>
+        </svg>
+        <p>rumus ajaibnya</p>
+      </figure>
+    </div>
+  </section>
+  <section class="intro band">
+    <div class="wrap">
+      <h2>Cari akar f(x) = 0 tanpa ribet</h2>
+      <p>Masukkan persamaan dan dua tebakan awal. Kalkulator menjalankan metode secant langkah demi langkah, lalu menampilkan tabel iterasi serta grafik nilai x<sub>i+1</sub> dan error.</p>
+    </div>
+  </section>
+  <section class="tiles band" aria-label="Langkah">
+    <div class="flower"><svg viewBox="0 0 100 100" aria-hidden="true"><use href="#blob" fill="#faf5ec"/></svg><div><b>tebak</b><span>dua titik awal</span></div></div>
+    <div class="flower"><svg viewBox="0 0 100 100" aria-hidden="true"><use href="#blob" fill="#fae9d7"/></svg><div><b>tarik</b><span>garis secant</span></div></div>
+    <div class="flower"><svg viewBox="0 0 100 100" aria-hidden="true"><use href="#blob" fill="#fbb6c4"/></svg><div><b>ulang</b><span>sampai error kecil</span></div></div>
+    <div class="flower"><svg viewBox="0 0 100 100" aria-hidden="true"><use href="#blob" fill="#faf5ec"/></svg><div><b>ketemu</b><span>akarnya!</span></div></div>
+  </section>
+  <div class="ribbon" aria-hidden="true"><div id="rib"></div></div>
+  <footer class="band">Praktikum Matematika Teknik · Metode Secant</footer>
+</main>
+
+<!-- ================= KALKULATOR ================= -->
+<main id="kalkulator" class="view" hidden>
+  <div class="scal" style="--c:var(--lav)"></div>
+  <section class="band">
+    <div class="wrap">
+      <div class="calc">
+        <form class="card" id="form" novalidate>
+          <h2>Kalkulator Secant</h2>
+          <span class="script" style="font-size:28px;color:var(--pink)">isi lalu klik hitung</span>
+          <label for="fx">Persamaan f(x)</label>
+          <input id="fx" value="2*x^3 - x - exp(-x)" autocomplete="off" spellcheck="false">
+          <div class="chips">
+            <button type="button" class="chip" data-f="2*x^3 - x - exp(-x)" data-a="0.1" data-b="2">2x³ − x − e⁻ˣ</button>
+            <button type="button" class="chip" data-f="cos(x) - x" data-a="0" data-b="1">cos(x) − x</button>
+            <button type="button" class="chip" data-f="x^2 - 4" data-a="1" data-b="3">x² − 4</button>
+            <button type="button" class="chip" data-f="x^3 - 2*x - 5" data-a="2" data-b="3">x³ − 2x − 5</button>
+          </div>
+          <div class="two">
+            <div><label for="x0">First Guess (x0)</label><input id="x0" type="number" step="any" value="0.1" inputmode="decimal"></div>
+            <div><label for="x1">Second Guess (x1)</label><input id="x1" type="number" step="any" value="2" inputmode="decimal"></div>
+            <div><label for="tol">Tolerable Error</label><input id="tol" type="number" step="any" value="0.0001" inputmode="decimal"></div>
+            <div><label for="n">Maximum Step</label><input id="n" type="number" step="1" min="1" value="20" inputmode="numeric"></div>
+          </div>
+          <label for="crit">Kriteria berhenti</label>
+          <select id="crit">
+            <option value="err">Error |xi+1 − xi| &lt; toleransi (seperti Excel)</option>
+            <option value="fx">|f(xi+1)| &lt; toleransi (seperti kode Python guru)</option>
+          </select>
+          <div class="err" id="msg" role="alert"></div>
+          <div class="acts">
+            <button class="btn" type="submit">Hitung</button>
+            <button class="btn ghost" type="button" id="reset">Reset</button>
+          </div>
+          <p style="font-size:13px;color:var(--soft);margin:18px 0 0">Tulis: + − * / ^, kurung, dan fungsi sin cos tan exp log (ln) log10 sqrt abs, konstanta pi dan e.</p>
+        </form>
+        <div class="card res" aria-live="polite">
+          <svg class="deco" style="right:-20px;top:-20px;width:120px;opacity:.35" viewBox="-40 -40 80 80" fill="#fff" aria-hidden="true"><use href="#daisy"/></svg>
+          <span class="script">akar persamaannya</span>
+          <div class="big" id="root">–</div>
+          <span class="pill" id="status">–</span>
+          <div class="stats">
+            <div><small>Jumlah iterasi</small><b id="sIt">–</b></div>
+            <div><small>f(akar)</small><b id="sF">–</b></div>
+            <div><small>Error terakhir</small><b id="sE">–</b></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="charts">
+        <div class="card"><h3>Nilai x<sub>i+1</sub></h3><p>tiap iterasi, garis putus = akar</p><div class="fig"><svg id="c1"></svg></div></div>
+        <div class="card"><h3>Error</h3><p>|x<sub>i+1</sub> − x<sub>i</sub>|, skala log, garis putus = toleransi</p><div class="fig"><svg id="c2"></svg></div></div>
+        <div class="card"><h3>Grafik x<sub>i+1</sub> &amp; Error</h3><div class="fig"><svg id="c3"></svg></div></div>
+      </div>
+
+      <div class="tblhead"><h2 style="font-size:28px">Tabel iterasi</h2><button class="btn ghost" type="button" id="copy">Salin tabel</button></div>
+      <div class="card scroll" style="padding:0">
+        <table><thead><tr><th>Iterasi</th><th>x0</th><th>xi</th><th>x<sub>i+1</sub></th><th>f(x<sub>i+1</sub>)</th><th>Error</th></tr></thead><tbody id="tb"></tbody></table>
+      </div>
+      <p style="text-align:center;margin-top:30px"><a href="#home" class="btn ghost" style="text-decoration:none;display:inline-flex;align-items:center">Kembali ke Home</a></p>
+    </div>
+  </section>
+</main>
+
+<script>
+{
+const $ = id => document.getElementById(id);
+
+/* ---------- Parser rumus (tanpa eval) ---------- */
+const FN = {sin:Math.sin,cos:Math.cos,tan:Math.tan,asin:Math.asin,acos:Math.acos,atan:Math.atan,
+  sinh:Math.sinh,cosh:Math.cosh,tanh:Math.tanh,exp:Math.exp,log:Math.log,ln:Math.log,log10:Math.log10,sqrt:Math.sqrt,abs:Math.abs};
+function parse(src){
+  const s = src.replace(/\s+/g,'').replace(/\*\*/g,'^').replace(/[−–]/g,'-').toLowerCase();
+  let i = 0;
+  const fail = m => { throw new Error(m); };
+  function expr(){ let a = term(); while(s[i]==='+'||s[i]==='-'){ const op=s[i++], b=term(), l=a; a = op==='+'? x=>l(x)+b(x) : x=>l(x)-b(x); } return a; }
+  function term(){ let a = unary();
+    while(i<s.length){
+      if(s[i]==='*'||s[i]==='/'){ const op=s[i++], b=unary(), l=a; a = op==='*'? x=>l(x)*b(x) : x=>l(x)/b(x); }
+      else if(/[a-z0-9.(]/.test(s[i])){ const b=power(), l=a; a = x=>l(x)*b(x); }
+      else break; }
+    return a; }
+  function unary(){ if(s[i]==='-'){ i++; const a=unary(); return x=>-a(x); } if(s[i]==='+'){ i++; return unary(); } return power(); }
+  function power(){ const a = atom(); if(s[i]==='^'){ i++; const b = unary(); return x=>Math.pow(a(x),b(x)); } return a; }
+  function atom(){
+    const m = s.slice(i).match(/^(\d+\.?\d*|\.\d+)(e[+-]?\d+)?/);
+    if(m){ i += m[0].length; const v=parseFloat(m[0]); return ()=>v; }
+    if(s[i]==='('){ i++; const a=expr(); if(s[i]!==')') fail('Kurung tutup kurang'); i++; return a; }
+    const w = s.slice(i).match(/^[a-z][a-z0-9]*/);
+    if(w){ const n=w[0]; i+=n.length;
+      if(n==='x') return x=>x;
+      if(n==='pi') return ()=>Math.PI;
+      if(n==='e') return ()=>Math.E;
+      if(FN[n]){ if(s[i]!=='(') fail(n+' harus diikuti kurung, mis. '+n+'(x)'); i++; const a=expr(); if(s[i]!==')') fail('Kurung tutup kurang'); i++; const g=FN[n]; return x=>g(a(x)); }
+      fail('Nama tidak dikenal: '+n); }
+    fail(i>=s.length ? 'Rumus belum lengkap' : 'Karakter tidak dikenal: '+s[i]);
+  }
+  if(!s) fail('Rumus masih kosong');
+  const f = expr(); if(i<s.length) fail('Karakter tidak dikenal: '+s[i]);
+  return f;
+}
+
+/* ---------- Metode Secant (sama dengan kode Python) ---------- */
+function secant(f, x0, x1, e, N, crit='fx'){
+  const rows = []; let status = 'ok';
+  for(let step=1;;step++){
+    const f0=f(x0), f1=f(x1);
+    if(!isFinite(f0)||!isFinite(f1)){ status='nan'; break; }
+    if(f0===f1){ status='div'; break; }
+    const x2 = x0 - (x1-x0)*f0/(f1-f0), fx2 = f(x2);
+    rows.push({i:step, x0, x1, x2, fx2, err:x2-x1});
+    x0 = x1; x1 = x2;
+    if((crit==='err' ? Math.abs(x2-x0) : Math.abs(fx2)) < e){ status='ok'; break; }
+    if(step >= N){ status='max'; break; }
+  }
+  return {rows, status};
+}
+
+/* ---------- Grafik SVG ---------- */
+const fmt = v => { if(v===0) return '0'; const a=Math.abs(v); return (a>=1e4||a<1e-3)? v.toExponential(1) : +v.toPrecision(4)+''; };
+function nice(lo,hi,n){ if(lo===hi){lo-=1;hi+=1;} const st=Math.pow(10,Math.floor(Math.log10((hi-lo)/n))); const k=[1,2,5,10].find(k=>(hi-lo)/(st*k)<=n)*st; const t=[]; for(let v=Math.ceil(lo/k)*k; v<=hi+k*1e-9; v+=k) t.push(+v.toPrecision(10)); return {lo:Math.min(lo,t[0]),hi:Math.max(hi,t[t.length-1]),t}; }
+const charts = {};
+function chart(id, o){ const s=$(id); charts[id]=o;
+  if(!charts['_'+id]){ const ro=new ResizeObserver(()=>draw(id)); ro.observe(s); charts['_'+id]=ro; }
+  draw(id); }
+function draw(id){
+  const s=$(id), o=charts[id]; if(!o) return;
+  const W=s.clientWidth, H=s.clientHeight; if(!W||!H) return;
+  const small = W<520, L=small?46:56, R=14, T=14, B=o.series?58:34;
+  const ser = (o.series||[{pts:o.pts,col:o.col}]).map(q=>({...q,pts:q.pts.filter(p=>isFinite(p.x)&&isFinite(p.y)&&(!o.log||p.y>0))}));
+  const pts = ser.flatMap(q=>q.pts);
+  if(!pts.length){ s.innerHTML=`<text x="${W/2}" y="${H/2}" text-anchor="middle">Belum ada data</text>`; return; }
+  const xs=pts.map(p=>p.x); let ys=pts.map(p=>o.log?Math.log10(p.y):p.y);
+  if(o.ref!=null) ys=ys.concat(o.log?Math.log10(o.ref):o.ref);
+  const X=nice(Math.min(...xs),Math.max(...xs),small?4:6);
+  let Y; if(o.log){ const lo=Math.floor(Math.min(...ys)), hi=Math.ceil(Math.max(...ys)); const t=[]; const stp=Math.max(1,Math.ceil((hi-lo)/5)); for(let v=lo;v<=hi;v+=stp)t.push(v); Y={lo,hi:Math.max(hi,lo+1),t}; } else Y=nice(Math.min(...ys),Math.max(...ys),5);
+  const sx=v=>L+(v-X.lo)/(X.hi-X.lo)*(W-L-R), sy=v=>T+(1-(v-Y.lo)/(Y.hi-Y.lo))*(H-T-B);
+  const yv=p=>sy(o.log?Math.log10(p.y):p.y);
+  let g='';
+  for(const t of Y.t) g+=`<line x1="${L}" x2="${W-R}" y1="${sy(t)}" y2="${sy(t)}" stroke="var(--line)"/><text x="${L-6}" y="${sy(t)+4}" text-anchor="end">${o.log?'1e'+t:fmt(t)}</text>`;
+  for(const t of X.t) g+=`<text x="${sx(t)}" y="${H-B+18}" text-anchor="middle">${fmt(t)}</text>`;
+  g+=`<text x="${W-R}" y="${o.series?H-B+32:H-4}" text-anchor="end">${o.xl}</text>`;
+  if(o.ref!=null){ const y=sy(o.log?Math.log10(o.ref):o.ref); g+=`<line x1="${L}" x2="${W-R}" y1="${y}" y2="${y}" stroke="var(--lav2)" stroke-width="2" stroke-dasharray="6 5"/>`; }
+  if(o.series && Y.lo<0 && Y.hi>0) g+=`<line x1="${L}" x2="${W-R}" y1="${sy(0)}" y2="${sy(0)}" stroke="var(--soft)" stroke-width="1"/>`;
+  for(const q of ser){ const P=q.pts, multi=!!o.series;
+    if(o.line) g+=`<path d="${P.map((p,k)=>(k?'L':'M')+sx(p.x).toFixed(1)+' '+yv(p).toFixed(1)).join('')}" fill="none" stroke="${q.col}" stroke-width="${multi?3:2.5}" stroke-linejoin="round"/>`;
+    P.forEach((p,k)=>{ const end=k===P.length-1&&!multi;
+      g+=`<circle cx="${sx(p.x)}" cy="${yv(p)}" r="${multi?3.5:(end?7:5)}" fill="${end?'var(--yel)':q.col}" stroke="var(--paper)" stroke-width="${multi?1:2}"><title>iterasi ${p.n}: ${q.name?q.name+' = ':''}${p.y}</title></circle>`; }); }
+  if(o.series){ let x=L; const y=H-12; for(const q of o.series){ g+=`<line x1="${x}" x2="${x+24}" y1="${y-4}" y2="${y-4}" stroke="${q.col}" stroke-width="4" stroke-linecap="round"/><text x="${x+30}" y="${y}">${q.name}</text>`; x+=96; } }
+  s.innerHTML=g;
+}
+
+/* ---------- Jalankan ---------- */
+let lastRows = [];
+function hitung(){
+  const msg=$('msg'); msg.textContent='';
+  let f; try{ f=parse($('fx').value); f(1); }catch(e){ msg.textContent='Rumus f(x) tidak valid: '+e.message; return; }
+  const x0=parseFloat($('x0').value), x1=parseFloat($('x1').value), tol=parseFloat($('tol').value), N=parseInt($('n').value,10);
+  if([x0,x1,tol].some(v=>!isFinite(v))||!(N>=1)){ msg.textContent='Isi semua angka dengan benar (Maximum Step minimal 1).'; return; }
+  if(x0===x1){ msg.textContent='x0 dan x1 harus berbeda.'; return; }
+  try{ localStorage.setItem('secant', JSON.stringify({fx:$('fx').value,x0,x1,tol,N,crit:$('crit').value})); }catch(e){}
+  const crit=$('crit').value;
+  const {rows,status} = secant(f,x0,x1,tol,Math.min(N,500),crit);
+  lastRows = rows;
+  const st = {ok:'Konvergen ✓', max:'Not Convergent (melewati Maximum Step)', div:'Divide by zero error! f(x0) = f(x1)', nan:'Nilai f(x) tidak terdefinisi'}[status];
+  $('status').textContent = st; $('status').className = 'pill'+(status==='ok'?'':' bad');
+  const last = rows[rows.length-1];
+  $('root').textContent = last ? last.x2.toFixed(8) : '–';
+  $('sIt').textContent = rows.length;
+  $('sF').textContent = last ? last.fx2.toExponential(2) : '–';
+  $('sE').textContent = last ? Math.abs(last.err).toExponential(2) : '–';
+  $('tb').innerHTML = rows.map((r,k)=>`<tr class="${k===rows.length-1?'last':''}"><td>${r.i}</td><td>${r.x0.toFixed(6)}</td><td>${r.x1.toFixed(6)}</td><td>${r.x2.toFixed(6)}</td><td>${r.fx2.toFixed(6)}</td><td>${r.err.toFixed(6)}</td></tr>`).join('')
+    || '<tr><td colspan="6" style="text-align:center">Tidak ada iterasi</td></tr>';
+  chart('c1',{pts:rows.map(r=>({x:r.i,y:r.x2,n:r.i})), ref:last?last.x2:null, line:true, col:'var(--pink)', xl:'iterasi'});
+  chart('c2',{pts:rows.map(r=>({x:r.i,y:Math.abs(r.err),n:r.i})), ref:tol>0?tol:null, log:true, line:true, col:'var(--err)', xl:'iterasi'});
+  chart('c3',{series:[{name:'Xi+1',col:'var(--pink)',pts:rows.map(r=>({x:r.i,y:r.x2,n:r.i}))},{name:'Error',col:'var(--err)',pts:rows.map(r=>({x:r.i,y:r.err,n:r.i}))}], line:true, xl:'iterasi'});
+}
+$('crit').addEventListener('change',hitung);
+$('form').addEventListener('submit', e=>{ e.preventDefault(); hitung(); });
+document.querySelectorAll('.chip').forEach(c=>c.addEventListener('click',()=>{ $('fx').value=c.dataset.f; $('x0').value=c.dataset.a; $('x1').value=c.dataset.b; hitung(); }));
+$('reset').addEventListener('click',()=>{ $('fx').value='2*x^3 - x - exp(-x)'; $('x0').value=0.1; $('x1').value=2; $('tol').value=0.0001; $('n').value=20; $('crit').value='err'; hitung(); });
+$('copy').addEventListener('click', async()=>{
+  const txt = ['Iterasi\tx0\txi\txi+1\tf(xi+1)\tError'].concat(lastRows.map(r=>[r.i,r.x0,r.x1,r.x2,r.fx2,r.err].join('\t'))).join('\n');
+  try{ await navigator.clipboard.writeText(txt); $('copy').textContent='Tersalin!'; }catch(e){ $('copy').textContent='Gagal menyalin'; }
+  setTimeout(()=>$('copy').textContent='Salin tabel',1600);
+});
+
+/* ---------- Navigasi Home <-> Kalkulator ---------- */
+function route(){
+  const calc = location.hash==='#kalkulator';
+  $('home').hidden = calc; $('kalkulator').hidden = !calc;
+  $('nh').classList.toggle('on',!calc); $('nk').classList.toggle('on',calc);
+  if(calc){ for(const id of ['c1','c2','c3']) draw(id); }
+}
+$('start').addEventListener('click',()=>{ location.hash='kalkulator'; window.scrollTo(0,0); });
+window.addEventListener('hashchange',()=>{ route(); window.scrollTo(0,0); });
+
+$('rib').textContent = Array(16).fill('SECANT METHOD  ✿  NON-LINEAR  ✿  ITERASI  ✿  AKAR PERSAMAAN  ✿  ').join('');
+try{ const sv=JSON.parse(localStorage.getItem('secant')||'null'); if(sv){ $('fx').value=sv.fx; $('x0').value=sv.x0; $('x1').value=sv.x1; $('tol').value=sv.tol; $('n').value=sv.N; if(sv.crit) $('crit').value=sv.crit; } }catch(e){}
+route();
+hitung();
+
+/* ---------- Animasi latar: hati & butiran berkilau ---------- */
+const cv=$('fx-bg'), cx=cv.getContext('2d');
+const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const COLS=['#faf5ec','#fae9d7','#ffffff','#fff1c9','#fbb6c4','#f7a0b8'];
+let parts=[], cw=0, ch=0, dpr=1;
+function spawn(anyY){ const k=Math.random(), heart=k<.3, star=!heart&&k<.55;
+  return {x:Math.random()*cw, y:anyY?Math.random()*ch:ch+20, r:heart?7+Math.random()*10:star?5+Math.random()*9:1.5+Math.random()*3, heart, star,
+    vy:.25+Math.random()*.55, sway:.4+Math.random()*1.1, ph:Math.random()*6.28, rot:(Math.random()-.5)*.6,
+    a:.35+Math.random()*.5, c:COLS[Math.floor(Math.random()*COLS.length)]}; }
+function size(){ dpr=Math.min(devicePixelRatio||1,2); cw=innerWidth; ch=innerHeight; cv.width=cw*dpr; cv.height=ch*dpr; cx.setTransform(dpr,0,0,dpr,0,0);
+  const want=Math.min(70,Math.round(cw*ch/22000)); while(parts.length<want) parts.push(spawn(true)); parts.length=want; if(still) frame(0); }
+function heartPath(r){ cx.beginPath(); cx.moveTo(0,r*.9); cx.bezierCurveTo(-r*1.6,-r*.1,-r*.9,-r*1.3,0,-r*.45); cx.bezierCurveTo(r*.9,-r*1.3,r*1.6,-r*.1,0,r*.9); }
+function frame(t){
+  cx.clearRect(0,0,cw,ch);
+  for(const p of parts){
+    if(!still){ p.y-=p.vy; p.ph+=.012; if(p.y<-30){ Object.assign(p,spawn(false)); } }
+    const x=p.x+Math.sin(p.ph)*p.sway*14, tw=p.heart?1:.55+.45*Math.sin(p.ph*3);
+    cx.save(); cx.translate(x,p.y); cx.globalAlpha=p.a*tw; cx.fillStyle=p.c;
+    cx.shadowColor='#ffffff'; cx.shadowBlur=p.heart?10:14;
+    if(p.heart){ cx.rotate(p.rot+Math.sin(p.ph)*.15); heartPath(p.r); cx.fill(); }
+    else if(p.star){ const r=p.r*(.8+.25*Math.sin(p.ph*3)); cx.beginPath(); cx.moveTo(0,-r*1.6); cx.quadraticCurveTo(0,0,r*1.6,0); cx.quadraticCurveTo(0,0,0,r*1.6); cx.quadraticCurveTo(0,0,-r*1.6,0); cx.quadraticCurveTo(0,0,0,-r*1.6); cx.fill(); }
+    else { cx.beginPath(); cx.arc(0,0,p.r,0,6.283); cx.fill(); if(p.r>3.6){ cx.globalAlpha*=.5; cx.fillRect(-p.r*2.4,-.6,p.r*4.8,1.2); cx.fillRect(-.6,-p.r*2.4,1.2,p.r*4.8); } }
+    cx.restore(); }
+  if(!still) requestAnimationFrame(frame);
+}
+addEventListener('resize',size); size(); if(!still) requestAnimationFrame(frame);
+}
+</script>
+</body>
+</html>
